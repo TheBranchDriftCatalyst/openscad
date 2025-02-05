@@ -1,0 +1,49 @@
+settings:
+  # output_dir: want to allow for piping these values as well like... {{ filament_color | snakecase }}
+  # lets use a framework for this, i know its possible in cli commands and what not lets do it however they do it
+  scad_file: ./assets/swatches/files/Rolodex_Filament_Swatch_V2.scad
+  output_name: "{{ Line_1_Text | sluggify }}_{{ Line_2_Text | sluggify }}_{{ Line_4_Text | sluggify }}"
+common:
+  Parts: Card
+  # font_name: "Liberation Sans"
+
+items:
+- Line_1_Text: Amolen
+  Line_2_Text: Burgundy Red
+  Line_3_Text: 210-240°C
+  Line_4_Text: PLA (CF)
+
+- Line_1_Text: Amolen
+  Line_2_Text: Aquamarine Blue
+  Line_3_Text: 210-240°C
+  Line_4_Text: PLA (CF)
+
+- Line_1_Text: Amolen
+  Line_2_Text: Dark Grey
+  Line_3_Text: 210-240°C
+  Line_4_Text: PLA (CF)
+
+- Line_1_Text: Flash Forge
+  Line_2_Text: Burnt Titanium
+  Line_3_Text: 190-220°C
+  Line_4_Text: PLA
+
+- Line_1_Text: Overture
+  Line_2_Text: Black
+  Line_3_Text: 190-220°C
+  Line_4_Text: PLA
+
+- Line_1_Text: StrongHero 3D
+  Line_2_Text: Red Black Purple
+  Line_3_Text: 195-215°C
+  Line_4_Text: PLA
+
+- Line_1_Text: OVV3D
+  Line_2_Text: Walnut Wood
+  Line_3_Text: 185-195°C (60-80°C)
+  Line_4_Text: PLA + Wood
+
+- Line_1_Text: iSANMATE
+  Line_2_Text: Glow Green
+  Line_3_Text: 190-220°C
+  Line_4_Text: PLA Glow

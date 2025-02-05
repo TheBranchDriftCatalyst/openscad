@@ -1,0 +1,8 @@
+common:
+  font_name: "Liberation Sans"
+  # Missing scad_file and output_name
+items:
+- brand: "Amolen"
+  color: "Burgundy Red"
+  material: "PLA (CF)"
+  temp: "210-240°C"

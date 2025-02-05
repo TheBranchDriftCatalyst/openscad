@@ -1,0 +1,20 @@
+settings:
+  scad_file: "./assets/swatches/files/Rolodex_Filament_Swatch_V2.scad"
+  output_name: "{{ brand }}_{{ color }}_{{ material }}"
+
+common:
+  font_name: "Liberation Sans"
+
+items:
+- brand: "Amolen"
+  color: "Burgundy Red"
+  material: "PLA (CF)"
+  temp: "210-240°C"
+- brand: "Amolen"
+  color: "Aquamarine Blue"
+  material: "PLA (CF)"
+  temp: "210-240°C"
+- brand: "Amolen"
+  color: "Dark Grey"
+  material: "PLA (CF)"
+  temp: "210-240°C"

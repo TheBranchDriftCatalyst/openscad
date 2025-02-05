@@ -1,0 +1,32 @@
+version: '3'
+
+tasks:
+  clean:
+    cmds:
+    - rm -rf ./.mypy_cache
+    - rm -rf ./.pytest_cache
+    - rm -rf ./.codegpt
+    - poetry cache clear --all ""
+    - find . -type d -regex '.*/\(__pycache__\)' -prune -exec rm -rf '{}' +
+    desc: "Cleans 3 cache directories"
+
+  build:
+    cmds:
+    - poetry build
+
+  coverage:
+    cmds:
+    - poetry run pytest -vv --cov=. --cov-report term --cov-report html .
+    desc: "Runs tests with coverage"
+
+  test:
+    cmds:
+    - pytest
+    desc: "Runs tests"
+
+  setup-dev:
+    cmds:
+    - poetry install
+    - mypy --install-types
+    - brew install fontconfig
+    desc: "Installs def dependencies"
