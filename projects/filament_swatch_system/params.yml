@@ -47,3 +47,8 @@ items:
   Line_2_Text: Glow Green
   Line_3_Text: 190-220°C
   Line_4_Text: PLA Glow
+
+- Line_1_Text: Flashforge
+  Line_2_Text: Ruby Red
+  Line_3_Text: 190-220°C (HS 220-240)
+  Line_4_Text: PLA (High Speed)

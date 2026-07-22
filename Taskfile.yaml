@@ -21,7 +21,7 @@ tasks:
 
   test:
     cmds:
-    - pytest
+    - pytest --cov
     desc: "Runs tests"
 
   setup-dev:

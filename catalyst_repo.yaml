@@ -1,0 +1,37 @@
+version: "0.1.1"
+name: "openscad"
+description: "Python build system for parametric OpenSCAD models — define variations in YAML, render STLs in parallel via Jinja2-templated output names and Pydantic-validated parameter schemas"
+repo_url: ""
+private: true
+status: "wip"
+
+tech_stack:
+  languages:
+    - "python"
+    - "openscad"
+  frameworks:
+    - "pydantic"
+  tools:
+    - "poetry"
+    - "jinja2"
+    - "rich"
+    - "openscad"
+    - "taskfile"
+
+groups:
+  - "3d-design"
+  - "tools"
+  - "automation"
+
+badges:
+  stars: false
+  issues: false
+  prs: false
+  license: false
+
+highlights:
+  - "YAML-driven parametric generation: define common params + per-item overrides, batch-render to STL via OpenSCAD CLI"
+  - "Jinja2-templated output filenames with custom filters (lowercase, sluggify) for deterministic naming"
+  - "Pydantic schema layer validates settings/common/items structure with field aliasing for human-readable YAML"
+  - "Parallel STL rendering with ProcessPoolExecutor and Rich progress spinners; skip-if-exists caching with --rebuild override"
+  - "Filament swatch system: generates labeled 3D-printable swatch cards and rolodex stands with per-filament metadata"
