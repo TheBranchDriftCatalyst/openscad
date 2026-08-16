@@ -19,8 +19,8 @@ spec:
     - kind: Rule
       match: Host(`manyfold.talos00`)
       middlewares:
-        - name: authentik
-          namespace: authentik
+        - name: lan-only
+          namespace: traefik
       services:
         - name: manyfold
           port: 3214
