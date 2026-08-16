@@ -1,0 +1,24 @@
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: manyfold-postgres
+  labels:
+    app.kubernetes.io/name: manyfold-postgres
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: openscad
+spec:
+  retentionPolicy: 30d
+  configuration:
+    destinationPath: s3://cnpg-backups/openscad-manyfold-postgres
+    endpointURL: http://minio-hl.minio.svc:9000
+    s3Credentials:
+      accessKeyId:
+        name: cnpg-minio-backup
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: cnpg-minio-backup
+        key: ACCESS_SECRET_KEY
+    wal:
+      compression: gzip
+    data:
+      compression: gzip

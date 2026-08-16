@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: openscad-manyfold-library
+  labels:
+    app.kubernetes.io/name: manyfold
+    app.kubernetes.io/component: model-library
+spec:
+  capacity:
+    storage: 1Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions:
+    - hard
+    - nfsvers=4.1
+    - noatime
+    - nodiratime
+    - rsize=1048576
+    - wsize=1048576
+  nfs:
+    server: 192.168.1.36
+    path: /volume1/media/3d-models
+  claimRef:
+    namespace: openscad
+    name: manyfold-library
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: manyfold-library
+  labels:
+    app.kubernetes.io/name: manyfold
+    app.kubernetes.io/component: model-library
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: openscad-manyfold-library
+  resources:
+    requests:
+      storage: 1Ti

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: manyfold
+  labels:
+    app.kubernetes.io/name: manyfold
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: manyfold
+  ports:
+    - name: http
+      port: 3214
+      targetPort: http
+      protocol: TCP

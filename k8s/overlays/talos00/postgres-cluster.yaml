@@ -1,0 +1,44 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: manyfold-postgres
+  labels:
+    app.kubernetes.io/name: manyfold-postgres
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: openscad
+spec:
+  inheritedMetadata:
+    labels:
+      velero.io/exclude-from-backup: "true"
+  instances: 3
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.4
+  bootstrap:
+    initdb:
+      database: manyfold
+      owner: manyfold
+  storage:
+    size: 10Gi
+    storageClass: fatboy-nfs-appdata
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+  monitoring:
+    enablePodMonitor: false
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: manyfold-postgres
+  postgresql:
+    parameters:
+      shared_buffers: 256MB
+      effective_cache_size: 512MB
+      work_mem: 16MB
+      maintenance_work_mem: 64MB
+      archive_mode: "on"
+      archive_timeout: 5min
+      log_min_duration_statement: "1000"

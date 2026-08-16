@@ -1,0 +1,17 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: manyfold-postgres-daily
+  labels:
+    app.kubernetes.io/name: manyfold-postgres
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: openscad
+spec:
+  schedule: "0 0 4 * * *"
+  immediate: true
+  backupOwnerReference: self
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+  cluster:
+    name: manyfold-postgres

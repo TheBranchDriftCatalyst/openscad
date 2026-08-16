@@ -5,3 +5,6 @@ htmlcov/
 .DS_Store
 **/__pycache__/
 .coverage
+
+# Local 3D model library. Production content lives on the NAS-backed PV.
+library/

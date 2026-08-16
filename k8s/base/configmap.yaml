@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: manyfold-config
+  labels:
+    app.kubernetes.io/name: manyfold
+data:
+  DATABASE_ADAPTER: postgresql
+  DATABASE_HOST: manyfold-postgres-rw
+  DATABASE_PORT: "5432"
+  DATABASE_NAME: manyfold
+  REDIS_URL: redis://manyfold-cache:6379/1
+  PUID: "1000"
+  PGID: "1000"
+  MANYFOLD_LOG_LEVEL: info
