@@ -12,3 +12,6 @@ resources:
   - scheduledbackup.yaml
   - dragonfly.yaml
   - ingressroute.yaml
+
+patches:
+  - path: oidc-config.yaml

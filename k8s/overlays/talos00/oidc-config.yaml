@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: manyfold-config
+data:
+  MULTIUSER: enabled
+  PUBLIC_HOSTNAME: manyfold.talos00
+  PUBLIC_PORT: "443"
+  OIDC_CLIENT_ID: manyfold
+  OIDC_ISSUER: https://auth.knowledgedump.space/application/o/manyfold/
+  OIDC_NAME: Authentik
