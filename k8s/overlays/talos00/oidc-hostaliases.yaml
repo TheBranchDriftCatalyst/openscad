@@ -1,0 +1,32 @@
+---
+# Route manyfold's SERVER-SIDE Authentik calls INTERNALLY, bypassing Cloudflare.
+#
+# Symptom this fixes:
+#   "Could not authenticate you from OpenIDConnect because 'Failed to open tcp
+#    connection to auth.knowledgedump.space:443 (execution expired)'"
+#
+# auth.knowledgedump.space is Cloudflare-proxied. Manyfold's server-side OIDC
+# HTTP (discovery / token / JWKS) egresses from the pod via the home IP and
+# hits Cloudflare, which stalls/blocks it — the request just times out. This
+# hostAlias makes the POD resolve auth.knowledgedump.space to the in-cluster
+# Traefik Service, so those calls go straight to Authentik and never traverse
+# Cloudflare. TLS stays valid: Traefik serves the *.knowledgedump.space
+# wildcard cert. BROWSER logins are unaffected — clients outside the cluster
+# still resolve via public DNS.
+#
+# Same fix already proven for boomtime (gaka-93f.11.2).
+#
+# IP NOTE: 10.103.83.240 is the traefik/traefik Service ClusterIP. If Traefik
+# is ever recreated this must be re-checked:
+#   kubectl get svc traefik -n traefik -o jsonpath='{.spec.clusterIP}'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: manyfold
+spec:
+  template:
+    spec:
+      hostAliases:
+        - ip: "10.103.83.240"
+          hostnames:
+            - auth.knowledgedump.space
