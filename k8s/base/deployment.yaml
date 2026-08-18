@@ -51,11 +51,16 @@ spec:
             - name: library
               mountPath: /library
           resources:
+            # NO cpu limit on purpose. CPU is compressible: the request below
+            # already guarantees manyfold's share under contention, while a
+            # limit adds a CFS quota that hard-stalls the process for the rest
+            # of each 100ms period once it is hit — which shows up as slow
+            # requests and timed-out probes even while the node has idle cores.
+            # Model parsing/thumbnailing is bursty, so let it use whatever is
+            # spare and get throttled only by actual contention.
             requests:
               cpu: 100m
               memory: 512Mi
-            limits:
-              cpu: "2"
           livenessProbe:
             httpGet:
               path: /health
