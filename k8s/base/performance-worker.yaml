@@ -184,3 +184,30 @@ spec:
       ports:
         - port: 443
           protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: manyfold-cache-from-keda
+  labels:
+    app.kubernetes.io/name: manyfold-performance-worker
+    app.kubernetes.io/component: autoscaling
+spec:
+  podSelector:
+    matchLabels:
+      app: manyfold-cache
+      app.kubernetes.io/name: dragonfly
+      app.kubernetes.io/part-of: dragonfly
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: keda
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: keda-operator
+      ports:
+        - port: 6379
+          protocol: TCP
