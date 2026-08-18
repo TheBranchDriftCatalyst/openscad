@@ -205,6 +205,17 @@ data:
       transform: translateY(-1px);
     }
 
+    .catalyst-theme a.btn {
+      color: var(--bs-btn-color) !important;
+      text-decoration: none;
+      text-shadow: none;
+    }
+
+    .catalyst-theme a.btn:hover,
+    .catalyst-theme a.btn:focus-visible {
+      color: var(--bs-btn-hover-color) !important;
+    }
+
     .catalyst-theme .btn-primary {
       --bs-btn-color: #05080d;
       --bs-btn-bg: var(--catalyst-cyan);
