@@ -50,6 +50,9 @@ spec:
           volumeMounts:
             - name: library
               mountPath: /library
+            - name: catalyst-theme-plugin
+              mountPath: /usr/src/app/plugins/catalyst_manyfold
+              readOnly: true
           resources:
             # NO cpu limit on purpose. CPU is compressible: the request below
             # already guarantees manyfold's share under contention, while a
@@ -91,3 +94,13 @@ spec:
         - name: library
           persistentVolumeClaim:
             claimName: manyfold-library
+        - name: catalyst-theme-plugin
+          configMap:
+            name: manyfold-catalyst-theme
+            items:
+              - key: plugin.gemspec
+                path: catalyst_manyfold.gemspec
+              - key: plugin.rb
+                path: lib/catalyst_manyfold.rb
+              - key: theme.css
+                path: lib/catalyst_manyfold/theme.css

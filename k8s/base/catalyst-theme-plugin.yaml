@@ -1,0 +1,341 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: manyfold-catalyst-theme
+  labels:
+    app.kubernetes.io/name: manyfold
+    app.kubernetes.io/component: theme-plugin
+data:
+  plugin.gemspec: |
+    Gem::Specification.new do |spec|
+      spec.name = "catalyst_manyfold"
+      spec.version = "1.0.0"
+      spec.summary = "Catalyst synthwave theme for Manyfold"
+      spec.authors = ["The Branch Drift Catalyst"]
+      spec.files = Dir["lib/**/*"]
+      spec.require_paths = ["lib"]
+      spec.metadata["manyfold_version"] = ">= 0.146.0"
+    end
+  plugin.rb: |
+    module CatalystManyfold
+      THEME_ENTRYPOINT = "entrypoints/themes/catalyst.scss"
+      BASE_ENTRYPOINT = "entrypoints/themes/default.scss"
+      STYLESHEET = File.read(File.expand_path("catalyst_manyfold/theme.css", __dir__)).freeze
+
+      module ViteThemeHelper
+        def vite_stylesheet_tag(*names, **options)
+          return super unless names.include?(CatalystManyfold::THEME_ENTRYPOINT)
+
+          base_names = names.map do |name|
+            name == CatalystManyfold::THEME_ENTRYPOINT ? CatalystManyfold::BASE_ENTRYPOINT : name
+          end
+          base_stylesheet = super(*base_names, **options)
+          catalyst_stylesheet = content_tag(
+            :style,
+            CatalystManyfold::STYLESHEET.html_safe,
+            nonce: content_security_policy_nonce,
+            data: {catalyst_manyfold_theme: "1.0.0"}
+          )
+          safe_join([base_stylesheet, catalyst_stylesheet], "\n")
+        end
+      end
+    end
+
+    ActiveSupport.on_load(:action_view) do
+      ViteRails::TagHelpers.prepend(CatalystManyfold::ViteThemeHelper) unless
+        ViteRails::TagHelpers < CatalystManyfold::ViteThemeHelper
+    end
+
+    Rails.application.config.after_initialize do
+      SiteSettings::AVAILABLE_THEMES << "catalyst" unless
+        SiteSettings::AVAILABLE_THEMES.include?("catalyst")
+      SiteSettings::AVAILABLE_THEMES.sort!
+    end
+  theme.css: |
+    /* Catalyst Manyfold: corporate synthwave translated from catalyst-ui. */
+    :root {
+      --catalyst-bg: #080a10;
+      --catalyst-surface: #11141d;
+      --catalyst-surface-raised: #181c27;
+      --catalyst-surface-soft: #202532;
+      --catalyst-cyan: #00fcd6;
+      --catalyst-cyan-rgb: 0, 252, 214;
+      --catalyst-blue: #00d4ff;
+      --catalyst-magenta: #c026d3;
+      --catalyst-pink: #ff6ec7;
+      --catalyst-danger: #ff2975;
+      --catalyst-gold: #fbbf24;
+      --catalyst-text: #e4e4e7;
+      --catalyst-muted: #9ca3af;
+      --catalyst-border: rgba(var(--catalyst-cyan-rgb), 0.22);
+      --catalyst-glow: 0 0 18px rgba(var(--catalyst-cyan-rgb), 0.18);
+      --catalyst-font-display: "Arial Narrow", "Roboto Condensed", "Helvetica Neue", sans-serif;
+      --catalyst-font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --catalyst-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+
+    body.catalyst-theme {
+      color-scheme: dark;
+      --bs-body-bg: var(--catalyst-bg);
+      --bs-body-color: var(--catalyst-text);
+      --bs-body-color-rgb: 228, 228, 231;
+      --bs-body-bg-rgb: 8, 10, 16;
+      --bs-emphasis-color: #ffffff;
+      --bs-emphasis-color-rgb: 255, 255, 255;
+      --bs-secondary-color: var(--catalyst-muted);
+      --bs-secondary-bg: var(--catalyst-surface);
+      --bs-tertiary-bg: var(--catalyst-surface-raised);
+      --bs-border-color: var(--catalyst-border);
+      --bs-primary: var(--catalyst-cyan);
+      --bs-primary-rgb: var(--catalyst-cyan-rgb);
+      --bs-link-color: var(--catalyst-cyan);
+      --bs-link-hover-color: var(--catalyst-pink);
+      --bs-link-color-rgb: var(--catalyst-cyan-rgb);
+      --bs-focus-ring-color: rgba(var(--catalyst-cyan-rgb), 0.32);
+      min-height: 100vh;
+      font-family: var(--catalyst-font-body);
+      letter-spacing: 0.012em;
+      background-color: var(--catalyst-bg);
+      background-image:
+        radial-gradient(circle at 82% -10%, rgba(192, 38, 211, 0.18), transparent 34rem),
+        radial-gradient(circle at -8% 15%, rgba(var(--catalyst-cyan-rgb), 0.12), transparent 30rem),
+        linear-gradient(rgba(var(--catalyst-cyan-rgb), 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(var(--catalyst-cyan-rgb), 0.025) 1px, transparent 1px);
+      background-size: auto, auto, 56px 56px, 56px 56px;
+      background-attachment: fixed;
+    }
+
+    .catalyst-theme h1,
+    .catalyst-theme h2,
+    .catalyst-theme h3,
+    .catalyst-theme h4,
+    .catalyst-theme h5,
+    .catalyst-theme h6,
+    .catalyst-theme .navbar-brand {
+      color: var(--catalyst-text);
+      font-family: var(--catalyst-font-display);
+      font-weight: 750;
+      letter-spacing: 0.055em;
+      text-transform: uppercase;
+    }
+
+    .catalyst-theme h1,
+    .catalyst-theme h2,
+    .catalyst-theme .navbar-brand {
+      background: linear-gradient(110deg, var(--catalyst-cyan), var(--catalyst-blue) 42%, var(--catalyst-pink));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      filter: drop-shadow(0 0 10px rgba(var(--catalyst-cyan-rgb), 0.18));
+    }
+
+    .catalyst-theme .navbar,
+    .catalyst-theme footer {
+      background: rgba(8, 10, 16, 0.9) !important;
+      border-color: var(--catalyst-border) !important;
+      box-shadow: 0 1px 0 rgba(var(--catalyst-cyan-rgb), 0.12), 0 12px 40px rgba(0, 0, 0, 0.28);
+      backdrop-filter: blur(18px) saturate(130%);
+    }
+
+    .catalyst-theme .card,
+    .catalyst-theme .list-group-item,
+    .catalyst-theme .dropdown-menu,
+    .catalyst-theme .modal-content,
+    .catalyst-theme .offcanvas,
+    .catalyst-theme .toast {
+      color: var(--catalyst-text);
+      background: linear-gradient(145deg, rgba(24, 28, 39, 0.96), rgba(12, 15, 23, 0.98));
+      border: 1px solid var(--catalyst-border);
+      border-radius: 0.65rem;
+      box-shadow: 0 16px 46px rgba(0, 0, 0, 0.34), var(--catalyst-glow);
+    }
+
+    .catalyst-theme .card {
+      overflow: hidden;
+      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .catalyst-theme .card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(var(--catalyst-cyan-rgb), 0.52);
+      box-shadow: 0 20px 55px rgba(0, 0, 0, 0.42), 0 0 25px rgba(var(--catalyst-cyan-rgb), 0.13);
+    }
+
+    .catalyst-theme .card-header,
+    .catalyst-theme .card-footer,
+    .catalyst-theme .modal-header,
+    .catalyst-theme .modal-footer {
+      background: rgba(var(--catalyst-cyan-rgb), 0.035);
+      border-color: var(--catalyst-border);
+    }
+
+    .catalyst-theme .btn {
+      border-radius: 0.42rem;
+      font-family: var(--catalyst-font-display);
+      font-weight: 700;
+      letter-spacing: 0.045em;
+      text-transform: uppercase;
+      transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+    }
+
+    .catalyst-theme .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .catalyst-theme .btn-primary {
+      --bs-btn-color: #05080d;
+      --bs-btn-bg: var(--catalyst-cyan);
+      --bs-btn-border-color: var(--catalyst-cyan);
+      --bs-btn-hover-color: #05080d;
+      --bs-btn-hover-bg: #55ffe8;
+      --bs-btn-hover-border-color: #55ffe8;
+      --bs-btn-active-color: #05080d;
+      --bs-btn-active-bg: #00d8b8;
+      --bs-btn-active-border-color: #00d8b8;
+      box-shadow: 0 0 16px rgba(var(--catalyst-cyan-rgb), 0.24);
+    }
+
+    .catalyst-theme .btn-secondary {
+      --bs-btn-color: var(--catalyst-text);
+      --bs-btn-bg: var(--catalyst-surface-soft);
+      --bs-btn-border-color: rgba(var(--catalyst-cyan-rgb), 0.2);
+      --bs-btn-hover-color: #fff;
+      --bs-btn-hover-bg: #2b3040;
+      --bs-btn-hover-border-color: var(--catalyst-magenta);
+    }
+
+    .catalyst-theme .form-control,
+    .catalyst-theme .form-select,
+    .catalyst-theme .input-group-text {
+      color: var(--catalyst-text);
+      background-color: rgba(10, 13, 20, 0.92);
+      border-color: rgba(var(--catalyst-cyan-rgb), 0.2);
+      border-radius: 0.42rem;
+    }
+
+    .catalyst-theme .form-control:focus,
+    .catalyst-theme .form-select:focus {
+      color: #fff;
+      background-color: #0c1018;
+      border-color: var(--catalyst-cyan);
+      box-shadow: 0 0 0 0.2rem rgba(var(--catalyst-cyan-rgb), 0.12), 0 0 18px rgba(var(--catalyst-cyan-rgb), 0.18);
+    }
+
+    .catalyst-theme .form-check-input:checked {
+      background-color: var(--catalyst-cyan);
+      border-color: var(--catalyst-cyan);
+      box-shadow: 0 0 12px rgba(var(--catalyst-cyan-rgb), 0.28);
+    }
+
+    .catalyst-theme .nav-link,
+    .catalyst-theme a {
+      color: var(--catalyst-cyan);
+      text-decoration-color: rgba(var(--catalyst-cyan-rgb), 0.35);
+      text-underline-offset: 0.18em;
+    }
+
+    .catalyst-theme .nav-link:hover,
+    .catalyst-theme a:hover {
+      color: var(--catalyst-pink);
+      text-decoration-color: currentColor;
+      text-shadow: 0 0 12px rgba(255, 110, 199, 0.24);
+    }
+
+    .catalyst-theme .nav-pills .nav-link.active,
+    .catalyst-theme .nav-pills .show > .nav-link {
+      color: #05080d;
+      background: linear-gradient(120deg, var(--catalyst-cyan), var(--catalyst-blue));
+      box-shadow: 0 0 18px rgba(var(--catalyst-cyan-rgb), 0.2);
+    }
+
+    .catalyst-theme .table {
+      --bs-table-color: var(--catalyst-text);
+      --bs-table-bg: transparent;
+      --bs-table-border-color: var(--catalyst-border);
+      --bs-table-striped-bg: rgba(var(--catalyst-cyan-rgb), 0.025);
+      --bs-table-hover-bg: rgba(var(--catalyst-cyan-rgb), 0.065);
+      --bs-table-hover-color: #fff;
+    }
+
+    .catalyst-theme .badge {
+      border: 1px solid rgba(var(--catalyst-cyan-rgb), 0.28);
+      border-radius: 0.35rem;
+      letter-spacing: 0.035em;
+    }
+
+    .catalyst-theme .progress {
+      background: var(--catalyst-surface);
+      border: 1px solid var(--catalyst-border);
+      box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.35);
+    }
+
+    .catalyst-theme .progress-bar {
+      color: #05080d;
+      background: linear-gradient(90deg, var(--catalyst-cyan), var(--catalyst-blue), var(--catalyst-magenta));
+      box-shadow: 0 0 16px rgba(var(--catalyst-cyan-rgb), 0.3);
+    }
+
+    .catalyst-theme .alert-info {
+      color: #b8fff5;
+      background: rgba(var(--catalyst-cyan-rgb), 0.08);
+      border-color: rgba(var(--catalyst-cyan-rgb), 0.32);
+    }
+
+    .catalyst-theme .alert-danger {
+      color: #ffd5e4;
+      background: rgba(255, 41, 117, 0.1);
+      border-color: rgba(255, 41, 117, 0.38);
+    }
+
+    .catalyst-theme .pagination {
+      --bs-pagination-color: var(--catalyst-cyan);
+      --bs-pagination-bg: var(--catalyst-surface);
+      --bs-pagination-border-color: var(--catalyst-border);
+      --bs-pagination-hover-color: var(--catalyst-pink);
+      --bs-pagination-hover-bg: var(--catalyst-surface-raised);
+      --bs-pagination-active-color: #05080d;
+      --bs-pagination-active-bg: var(--catalyst-cyan);
+      --bs-pagination-active-border-color: var(--catalyst-cyan);
+    }
+
+    .catalyst-theme img,
+    .catalyst-theme canvas {
+      border-radius: 0.4rem;
+    }
+
+    .catalyst-theme code,
+    .catalyst-theme pre,
+    .catalyst-theme kbd {
+      color: var(--catalyst-pink);
+      font-family: var(--catalyst-font-mono);
+    }
+
+    .catalyst-theme ::selection {
+      color: #05080d;
+      background: var(--catalyst-cyan);
+    }
+
+    .catalyst-theme * {
+      scrollbar-color: rgba(var(--catalyst-cyan-rgb), 0.48) var(--catalyst-bg);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .catalyst-theme *,
+      .catalyst-theme *::before,
+      .catalyst-theme *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
+
+    @media (forced-colors: active) {
+      .catalyst-theme h1,
+      .catalyst-theme h2,
+      .catalyst-theme .navbar-brand {
+        background: none;
+        color: CanvasText;
+        filter: none;
+      }
+    }

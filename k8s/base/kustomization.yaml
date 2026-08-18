@@ -4,6 +4,7 @@ kind: Kustomization
 namespace: openscad
 
 resources:
+  - catalyst-theme-plugin.yaml
   - namespace.yaml
   - serviceaccount.yaml
   - configmap.yaml
