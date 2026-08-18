@@ -22,6 +22,12 @@ data:
       BASE_ENTRYPOINT = "entrypoints/themes/default.scss"
       STYLESHEET = File.read(File.expand_path("catalyst_manyfold/theme.css", __dir__)).freeze
 
+      # Manyfold mounts every discovered plugin as a namespaced Rails engine,
+      # even when the plugin does not expose routes of its own.
+      class Engine < ::Rails::Engine
+        isolate_namespace CatalystManyfold
+      end
+
       module ViteThemeHelper
         def vite_stylesheet_tag(*names, **options)
           return super unless names.include?(CatalystManyfold::THEME_ENTRYPOINT)
