@@ -39,7 +39,7 @@ data:
           catalyst_stylesheet = content_tag(
             :style,
             CatalystManyfold::STYLESHEET.html_safe,
-            nonce: controller&.content_security_policy_nonce,
+            nonce: content_security_policy_nonce,
             data: {catalyst_manyfold_theme: "1.0.0"}
           )
           safe_join([base_stylesheet, catalyst_stylesheet], "\n")
