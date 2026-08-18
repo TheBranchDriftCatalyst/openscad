@@ -1,0 +1,186 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: manyfold-performance-worker
+  labels:
+    app.kubernetes.io/name: manyfold-performance-worker
+    app.kubernetes.io/component: performance-worker
+    app.kubernetes.io/part-of: openscad
+  annotations:
+    catalyst.dev/architecture: one CPU-bound Sidekiq process per pod; replicas are managed by KEDA
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: manyfold-performance-worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: manyfold-performance-worker
+        app.kubernetes.io/component: performance-worker
+        app.kubernetes.io/part-of: openscad
+      annotations:
+        catalyst.dev/resources: CPU and memory limits intentionally omitted so large mesh jobs can burst on otherwise idle homelab nodes
+    spec:
+      serviceAccountName: manyfold
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 3600
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: DoesNotExist
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchExpressions:
+                    - key: app.kubernetes.io/name
+                      operator: In
+                      values:
+                        - manyfold
+                        - manyfold-performance-worker
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: manyfold-performance-worker
+      containers:
+        - name: performance-worker
+          image: ghcr.io/manyfold3d/manyfold:0.146.0
+          imagePullPolicy: IfNotPresent
+          workingDir: /usr/src/app
+          command:
+            - /usr/local/bin/bundle
+          args:
+            - exec
+            - sidekiq
+            - -C
+            - config/workers/performance.yml
+            - -t
+            - "3540"
+          envFrom:
+            - configMapRef:
+                name: manyfold-config
+            - secretRef:
+                name: manyfold-secrets
+          env:
+            - name: PERFORMANCE_WORKER_CONCURRENCY
+              value: "1"
+            - name: TMPDIR
+              value: /usr/src/app/tmp
+            - name: DATABASE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: manyfold-postgres-app
+                  key: username
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: manyfold-postgres-app
+                  key: password
+          resources:
+            requests:
+              cpu: "1"
+              ephemeral-storage: 1Gi
+              memory: 2Gi
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - kill -0 1
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - kill -0 1
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: library
+              mountPath: /library
+            - name: scratch
+              mountPath: /usr/src/app/tmp
+      volumes:
+        - name: library
+          persistentVolumeClaim:
+            claimName: manyfold-library
+        - name: scratch
+          emptyDir:
+            sizeLimit: 20Gi
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: manyfold-performance-worker
+  labels:
+    app.kubernetes.io/name: manyfold-performance-worker
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: manyfold-performance-worker
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - port: 5432
+          protocol: TCP
+        - port: 6379
+          protocol: TCP
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+      ports:
+        - port: 443
+          protocol: TCP

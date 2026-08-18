@@ -23,6 +23,13 @@ spec:
       securityContext:
         seccompProfile:
           type: RuntimeDefault
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: DoesNotExist
       containers:
         - name: manyfold
           image: ghcr.io/manyfold3d/manyfold:0.146.0
@@ -50,6 +57,11 @@ spec:
           volumeMounts:
             - name: library
               mountPath: /library
+            # Shrine writes conversion intermediates beneath tmp/shrine.
+            # Keep those files on node-local ephemeral storage instead of the
+            # container writable layer or the NFS-backed model library.
+            - name: scratch
+              mountPath: /usr/src/app/tmp
             - name: catalyst-theme-plugin
               mountPath: /usr/src/app/plugins/catalyst_manyfold
               readOnly: true
@@ -63,6 +75,7 @@ spec:
             # spare and get throttled only by actual contention.
             requests:
               cpu: 100m
+              ephemeral-storage: 1Gi
               memory: 512Mi
           livenessProbe:
             httpGet:
@@ -94,6 +107,9 @@ spec:
         - name: library
           persistentVolumeClaim:
             claimName: manyfold-library
+        - name: scratch
+          emptyDir:
+            sizeLimit: 20Gi
         - name: catalyst-theme-plugin
           configMap:
             name: manyfold-catalyst-theme

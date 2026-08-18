@@ -1,0 +1,50 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: manyfold-performance-worker
+  labels:
+    app.kubernetes.io/name: manyfold-performance-worker
+    app.kubernetes.io/component: autoscaling
+    app.kubernetes.io/part-of: openscad
+  annotations:
+    catalyst.dev/scaling: performance queue depth; slow scale-down protects long-running mesh jobs
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: manyfold-performance-worker
+  minReplicaCount: 2
+  maxReplicaCount: 5
+  fallback:
+    failureThreshold: 3
+    replicas: 2
+  advanced:
+    restoreToOriginalReplicaCount: true
+    horizontalPodAutoscalerConfig:
+      name: manyfold-performance-worker
+      behavior:
+        scaleUp:
+          stabilizationWindowSeconds: 0
+          selectPolicy: Max
+          policies:
+            - type: Pods
+              value: 2
+              periodSeconds: 60
+            - type: Percent
+              value: 100
+              periodSeconds: 60
+        scaleDown:
+          stabilizationWindowSeconds: 1800
+          selectPolicy: Min
+          policies:
+            - type: Pods
+              value: 1
+              periodSeconds: 300
+  triggers:
+    - type: redis
+      metadata:
+        address: manyfold-cache:6379
+        databaseIndex: "1"
+        listName: queue:performance
+        listLength: "4"
+        activationListLength: "1"
