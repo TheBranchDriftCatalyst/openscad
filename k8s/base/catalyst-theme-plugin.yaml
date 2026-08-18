@@ -297,9 +297,13 @@ data:
     .catalyst-theme .table-light,
     .catalyst-theme .table-primary,
     .catalyst-theme .table-secondary,
-    .catalyst-theme .table-warning {
+    .catalyst-theme .table-warning,
+    .catalyst-theme .table-success,
+    .catalyst-theme .table-danger {
       --bs-table-color: var(--catalyst-text);
+      --bs-table-color-state: var(--catalyst-text);
       --bs-table-bg: rgba(17, 20, 29, 0.96);
+      --bs-table-bg-state: rgba(17, 20, 29, 0.96);
       --bs-table-striped-color: var(--catalyst-text);
       --bs-table-striped-bg: rgba(var(--catalyst-cyan-rgb), 0.035);
       --bs-table-active-color: #fff;
@@ -308,6 +312,29 @@ data:
       --bs-table-hover-bg: rgba(var(--catalyst-cyan-rgb), 0.075);
       color: var(--catalyst-text);
       border-color: var(--catalyst-border);
+    }
+
+    .catalyst-theme .table-success {
+      --bs-table-bg: rgba(0, 252, 214, 0.075);
+      --bs-table-bg-state: rgba(0, 252, 214, 0.075);
+    }
+
+    .catalyst-theme .table-danger {
+      --bs-table-bg: rgba(255, 41, 117, 0.1);
+      --bs-table-bg-state: rgba(255, 41, 117, 0.1);
+    }
+
+    .catalyst-theme :is(
+      .table-info,
+      .table-light,
+      .table-primary,
+      .table-secondary,
+      .table-warning,
+      .table-success,
+      .table-danger
+    ) a {
+      color: var(--catalyst-cyan) !important;
+      text-decoration-color: rgba(var(--catalyst-cyan-rgb), 0.5);
     }
 
     .catalyst-theme .badge {
@@ -338,6 +365,16 @@ data:
     .catalyst-theme .uppy-Dashboard-poweredBy,
     .catalyst-theme .uppy-Dashboard-poweredByUppy {
       color: #c6cbd3 !important;
+    }
+
+    .catalyst-theme .uppy-Dashboard-AddFiles-title {
+      color: var(--catalyst-text) !important;
+    }
+
+    .catalyst-theme .uppy-Dashboard-browse {
+      color: var(--catalyst-cyan) !important;
+      text-decoration: underline;
+      text-underline-offset: 0.18em;
     }
 
     .catalyst-theme .progress {
