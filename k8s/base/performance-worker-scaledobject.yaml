@@ -43,7 +43,8 @@ spec:
   triggers:
     - type: redis
       metadata:
-        address: manyfold-cache:6379
+        # KEDA's operator runs outside this namespace, so use the service FQDN.
+        address: manyfold-cache.openscad.svc.cluster.local:6379
         databaseIndex: "1"
         listName: queue:performance
         listLength: "4"
