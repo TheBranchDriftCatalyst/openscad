@@ -32,6 +32,29 @@ spec:
           protocol: UDP
         - port: 53
           protocol: TCP
+    # Server-side OIDC (discovery / token / JWKS) to Authentik.
+    #
+    # The `catalyst.io/oidc: "true"` pod label makes the Kyverno ClusterPolicy
+    # `oidc-hostalias` pin auth.knowledgedump.space to Traefik's ClusterIP, so
+    # these calls stay in-cluster instead of egressing to Cloudflare (which
+    # stalls them). But the broad 0.0.0.0/0 rule below EXCLUDES 10.0.0.0/8,
+    # and BOTH the Traefik ClusterIP (10.103.x) and its pod IPs (10.244.x)
+    # fall inside that range — so the redirected traffic was being dropped and
+    # SSO still timed out. This rule re-permits exactly that one path.
+    #
+    # Selects Traefik by namespace+pod label rather than by IP: Cilium
+    # translates the ClusterIP to a backend pod IP before egress policy is
+    # evaluated, and this survives a Traefik Service/pod recreation.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: traefik
+      ports:
+        - port: 443
+          protocol: TCP
     - to:
         - ipBlock:
             cidr: 0.0.0.0/0
