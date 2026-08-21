@@ -174,6 +174,29 @@ spec:
           protocol: UDP
         - port: 53
           protocol: TCP
+    # Allow 443 to Traefik IN-CLUSTER. The ipBlock rule below permits 443 to
+    # 0.0.0.0/0 EXCEPT the RFC1918 ranges — and Traefik's ClusterIP (10.103.83.240)
+    # plus its pod IPs (10.244.0.0/16) both fall inside that exclusion, so without
+    # this rule every in-cluster HTTPS packet is silently DROPPED.
+    #
+    # That is exactly what broke manyfold's SSO: the Kyverno-injected hostAlias
+    # resolved auth.knowledgedump.space to Traefik correctly, and the netpol then
+    # dropped the traffic — producing the same "execution expired" error the alias
+    # was added to cure. See talos-homelab TALOS-9l2h.
+    #
+    # This worker carries no catalyst.io/oidc label today, so it is not broken yet —
+    # this is pre-emptive, so labelling it later does not re-create the outage.
+    # Selected BY LABEL, not IP, so it survives a Traefik Service recreation.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: traefik
+      ports:
+        - port: 443
+          protocol: TCP
     - to:
         - ipBlock:
             cidr: 0.0.0.0/0
