@@ -1,0 +1,33 @@
+---
+# Opt manyfold's POD into the cluster-wide Authentik hostAlias.
+#
+# Symptom this fixes:
+#   "Could not authenticate you from OpenIDConnect because 'Failed to open tcp
+#    connection to auth.knowledgedump.space:443 (execution expired)'"
+#
+# auth.knowledgedump.space is Cloudflare-proxied. Manyfold's server-side OIDC
+# HTTP (discovery / token / JWKS) egresses from the pod via the home IP and
+# hits Cloudflare, which stalls/blocks it — the request just times out.
+#
+# The `catalyst.io/oidc: "true"` POD label makes the Kyverno ClusterPolicy
+# `oidc-hostalias` inject a hostAlias at admission time, pinning
+# auth.knowledgedump.space to the in-cluster Traefik ClusterIP. Those calls
+# then go straight to Authentik and never traverse Cloudflare. TLS stays
+# valid: Traefik serves the *.knowledgedump.space wildcard cert. BROWSER
+# logins are unaffected — clients outside the cluster still resolve via
+# public DNS.
+#
+# The policy owns the IP, so it is no longer duplicated per-app here:
+#   talos-homelab infrastructure/base/kyverno-policies/oidc-hostalias.yaml
+#
+# NOTE: the label must live on the POD TEMPLATE (Kyverno matches Pods, not
+# Deployments). Do NOT add it to spec.selector — selectors are immutable.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: manyfold
+spec:
+  template:
+    metadata:
+      labels:
+        catalyst.io/oidc: "true"

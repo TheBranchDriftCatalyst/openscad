@@ -15,4 +15,4 @@ resources:
 
 patches:
   - path: oidc-config.yaml
-  - path: oidc-hostaliases.yaml # pod->Authentik goes internal (bypass Cloudflare)
+  - path: oidc-label.yaml # opts pod into Kyverno oidc-hostalias (bypass Cloudflare)
