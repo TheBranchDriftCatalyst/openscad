@@ -10,7 +10,12 @@ spec:
   inheritedMetadata:
     labels:
       velero.io/exclude-from-backup: "true"
-  instances: 3
+  # Scaled 3 -> 1 (2026-08-21). Measured, not guessed: cnpg_pg_stat_database_blks_read
+  # for openscad is 0.00/s -- zero disk reads miss the shared buffer cache, so the
+  # entire working set lives in RAM. At 2.98 tx/s and 208 tuples fetched/s, every
+  # read is already served from cache. The two extra replicas were paying 3x WAL and
+  # 3x pods to protect a read path that never touches disk.
+  instances: 1
   imageName: ghcr.io/cloudnative-pg/postgresql:18.4
   bootstrap:
     initdb:
@@ -18,6 +23,11 @@ spec:
       owner: manyfold
   storage:
     size: 10Gi
+    # DO NOT move this to local-path. instances: 1 is only safe BECAUSE this volume is
+    # node-independent: NFS survives a node loss, the pod reschedules elsewhere and
+    # re-attaches the same volume. On local-path a node failure would strand the only
+    # copy on a dead node with no recovery short of a barman restore -- strictly worse
+    # than running 3 replicas. NEVER combine instances: 1 with local-path.
     storageClass: fatboy-nfs-appdata
   resources:
     requests:
@@ -29,10 +39,10 @@ spec:
   monitoring:
     enablePodMonitor: false
   plugins:
-    - name: barman-cloud.cloudnative-pg.io
-      isWALArchiver: true
-      parameters:
-        barmanObjectName: manyfold-postgres
+  - name: barman-cloud.cloudnative-pg.io
+    isWALArchiver: true
+    parameters:
+      barmanObjectName: manyfold-postgres
   postgresql:
     parameters:
       shared_buffers: 256MB
